@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Playground</title>
+        <script src="./main.js"></script>
+    </head>
+    <body>
+        <h1>在控制台即时加载npm包</h1>
+        <h2>主要给出了两个函数：require() 和 appendPackageToHead() ，函数已挂载至window</h2>
+        <p>require函数仅能导入完全兼容RequireJS的包</p>
+        <p>例如，React默认以CommonJS形式导出，直接 const react = require("react") 即可</p>
+        <p>或者，直接从url加载 const react = require("https://unpkg.com/react@18/umd/react.production.min.js")</p>
+        <p>Vue3默认以global形式导出，使用 await appendPackageToHead("vue") 之后就可以使用 Vue 对象了</p>
+        <p>Vue2： const Vue = require("vue@2")</p>
+        <p>兼容iife形式的包也可以使用 await appendPackageToHead()</p>
+        <p>不支持 es6 import/export</p>
+        <hr />
+        <p>
+            移动端可以导入 <a href="https://www.npmjs.com/package/vconsole">vconsole</a> 或
+            <a href="https://www.npmjs.com/package/eruda">eruda</a>
+        </p>
+        <p>直接在本页面加上请求参数 eruda 或 vconsole 即可启用</p>
+        <p>例如：http://example.net/index.html?eruda</p>
+    </body>
+    <script>
+        (async () => {
+            if (new URL(location.href).searchParams.has("eruda")) {
+                await appendPackageToHead("eruda");
+                eruda.init();
+            }
+            if (new URL(location.href).searchParams.has("vconsole")) {
+                await appendPackageToHead("vconsole");
+                const vConsole = new VConsole();
+            }
+        })();
+    </script>
+</html>
