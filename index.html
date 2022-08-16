@@ -6,17 +6,33 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Playground</title>
         <script src="./main.js"></script>
+        <style>
+            html {
+                font-size: 16px;
+                font-family: Consolas, monospace;
+            }
+            body {
+                margin: 5%;
+            }
+        </style>
     </head>
     <body>
         <h1>在控制台即时加载npm包</h1>
-        <h2>主要给出了两个函数：require() 和 appendPackageToHead() ，函数已挂载至window</h2>
-        <p>require函数仅能导入完全兼容RequireJS的包</p>
+        <h2>主要给出了三个函数：require() 、 appendPackageToHead() 以及 _import()，函数已挂载至 window</h2>
+        <hr />
+        <p>require函数仅能导入完全兼容 RequireJS 的包</p>
         <p>例如，React默认以CommonJS形式导出，直接 const react = require("react") 即可</p>
-        <p>或者，直接从url加载 const react = require("https://unpkg.com/react@18/umd/react.production.min.js")</p>
-        <p>Vue3默认以global形式导出，使用 await appendPackageToHead("vue") 之后就可以使用 Vue 对象了</p>
+        <p>或者，直接从 url 加载 const react = require("https://unpkg.com/react@18/umd/react.production.min.js")</p>
+        <p>Vue3 默认以 global 形式导出，使用 await appendPackageToHead("vue") 之后就可以使用 Vue 对象了</p>
         <p>Vue2： const Vue = require("vue@2")</p>
-        <p>兼容iife形式的包也可以使用 await appendPackageToHead()</p>
-        <p>不支持 es6 import/export</p>
+        <p>兼容 iife 形式的包也可以使用 await appendPackageToHead()</p>
+        <hr />
+        <p>require 函数不支持 es6 import/export</p>
+        <p>对于 es6 模块，直接使用原生函数 import() 即可</p>
+        <p>此页面提供辅助函数 _import(packageName) 用于直接从 cdn 加载 npm 包</p>
+        <p>例如：await _import("vue") await _import("vue", "esm.sh")</p>
+        <p>await _import("react", "skypack") await _import("react", "jspm")</p>
+        <p>await _import("https://esm.run/vue") await _import("vue", "https://esm.run/")</p>
         <hr />
         <p>
             移动端可以导入 <a href="https://www.npmjs.com/package/vconsole">vconsole</a> 或

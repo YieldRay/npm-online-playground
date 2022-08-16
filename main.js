@@ -58,3 +58,15 @@ function appendScriptToHead(src) {
 async function appendPackageToHead(packageName) {
     return await appendScriptToHead("https://unpkg.com/" + packageName);
 }
+
+async function _import(packageName, cdn = "esm.sh") {
+    const cdns = {
+        "esm.run": "https://esm.run/", // by jsDelivr
+        "esm.sh": "https://esm.sh/",
+        skypack: "https://cdn.skypack.dev/",
+        jspm: "https://jspm.dev/",
+    };
+    if (/^https?:\/\//.test(packageName)) return await import(packageName);
+    if (cdn.endsWith("/")) return await import(cdn + packageName);
+    return await import(cdns[cdn] + packageName);
+}
