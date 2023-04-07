@@ -5,51 +5,57 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Playground</title>
-        <script src="./main.js"></script>
+        <link rel="stylesheet" href="https://npm.elemecdn.com/landsoul@latest" />
+        <script type="module">
+            import { require, pkg2head, import$ } from "./main.js";
+            Object.assign(window, { require, import$, pkg2head });
+        </script>
         <style>
             html {
                 font-size: 16px;
                 font-family: Consolas, monospace;
             }
+
             body {
                 margin: 5%;
                 word-wrap: break-word;
             }
         </style>
     </head>
+
     <body>
-        <h1>在控制台即时加载npm包</h1>
-        <h2>主要给出了三个函数：require() 、 appendPackageToHead() 以及 _import()，函数已挂载至 window</h2>
+        <h1>在控制台即时加载 npm 包</h1>
+        <h2>主要给出了三个函数：require() 、pkg2head() 以及 import$()，分别用于导入 cjs、iife、esm 格式的包</h2>
         <hr />
-        <p>require函数仅能导入完全兼容 RequireJS 的包</p>
-        <p>例如，React默认以CommonJS形式导出，直接 const react = require("react") 即可</p>
-        <p>或者，直接从 url 加载 const react = require("https://unpkg.com/react@18/umd/react.production.min.js")</p>
-        <p>Vue3 默认以 global 形式导出，使用 await appendPackageToHead("vue") 之后就可以使用 Vue 对象了</p>
-        <p>Vue2： const Vue = require("vue@2")</p>
-        <p>兼容 iife 形式的包也可以使用 await appendPackageToHead()</p>
+        <p>require 函数仅能导入完全兼容 RequireJS 的包</p>
+        <p>例如，React 默认以 CommonJS 形式导出，直接 const react = require("react") 即可（默认使用 unpkg）</p>
+        <p>或者也可以从 url 加载 const react = require("https://unpkg.com/react@18/umd/react.production.min.js")</p>
+        <p>Vue3 默认导出 iife 格式，使用 await pkg2head("vue") 之后就可以使用 Vue 对象了</p>
+        <p>Vue2 默认导出 cjs 格式： const Vue = require("vue@2")</p>
         <hr />
-        <p>require 函数不支持 es6 import/export</p>
-        <p>对于 es6 模块，直接使用原生函数 import() 即可</p>
-        <p>此页面提供辅助函数 _import(packageName) 用于直接从 cdn 加载 npm 包</p>
-        <p>例如：await _import("vue") await _import("vue", "esm.sh")</p>
-        <p>await _import("react", "skypack") await _import("react", "jspm")</p>
-        <p>await _import("https://esm.run/vue") await _import("vue", "https://esm.run/")</p>
+        <p>require 函数不能导入使用了 import/export 代码的包</p>
+        <p>对于 esm 模块，直接使用原生函数 import() 即可</p>
+        <p>这里提供了辅助函数 import$(packageName) 用于直接从 cdn 加载 npm 包</p>
+        <p>该函数会选择自动将 npm 包转译为 esm 的 cdn 提供商，因此无需考虑 npm 包的默认导出格式</p>
+        <p>例如：await import$("vue") await import$("vue", { cdn: "esm.sh" })</p>
+        <p>await import$("react", { cdn: "skypack" }) await import$("react", { cdn: "jspm" })</p>
+        <p>await import$("https://esm.run/vue") await import$("vue", { cdn: "https://esm.run/" })</p>
         <hr />
         <p>
             移动端可以导入 <a href="https://www.npmjs.com/package/vconsole">vconsole</a> 或
             <a href="https://www.npmjs.com/package/eruda">eruda</a>
         </p>
-        <p>直接在本页面加上请求参数 eruda 或 vconsole 即可启用</p>
+        <p>直接在本页面加上请求参数 eruda 或 vconsole 即可自动启用</p>
         <p>例如：http://example.net/index.html?eruda</p>
     </body>
     <script>
         (async () => {
             if (new URL(location.href).searchParams.has("eruda")) {
-                await appendPackageToHead("eruda");
+                await pkg2head("eruda");
                 eruda.init();
             }
             if (new URL(location.href).searchParams.has("vconsole")) {
-                await appendPackageToHead("vconsole");
+                await pkg2head("vconsole");
                 const vConsole = new VConsole();
             }
         })();

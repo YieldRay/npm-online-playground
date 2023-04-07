@@ -1,4 +1,4 @@
-function require(packageName) {
+export function require(packageName) {
     if (!packageName) return;
     const [text, url] = fetchTextSync((packageName.startsWith("http") ? "" : "https://unpkg.com/") + packageName);
     if (!text) {
@@ -18,7 +18,7 @@ function require(packageName) {
     return execCommonJS(fixedText);
 }
 
-function execCommonJS(js) {
+function execCommonJS(sourceCode) {
     const module = {
         id: "<repl>",
         path: ".",
@@ -30,7 +30,7 @@ function execCommonJS(js) {
     };
     let exports = module.exports;
     const process = { env: {} };
-    eval(js);
+    eval(sourceCode);
     return module.exports;
 }
 
@@ -55,18 +55,30 @@ function appendScriptToHead(src) {
     });
 }
 
-async function appendPackageToHead(packageName) {
-    return await appendScriptToHead("https://unpkg.com/" + packageName);
+export function pkg2head(packageName) {
+    return appendScriptToHead("https://unpkg.com/" + packageName);
 }
 
-async function _import(packageName, cdn = "esm.sh") {
-    const cdns = {
-        "esm.run": "https://esm.run/", // by jsDelivr
-        "esm.sh": "https://esm.sh/",
-        skypack: "https://cdn.skypack.dev/",
-        jspm: "https://jspm.dev/",
-    };
-    if (/^https?:\/\//.test(packageName)) return await import(packageName);
-    if (cdn.endsWith("/")) return await import(cdn + packageName);
-    return await import(cdns[cdn] + packageName);
+export async function import$(packageName, attributes = { cdn: "esm.sh" }) {
+    const cdn = attributes ? attributes.cdn : undefined;
+    let url;
+
+    if (/^https?:\/\//.test(packageName)) {
+        url = packageName;
+    } else if (cdn && cdn.endsWith("/")) {
+        url = attributes.cdn + packageName;
+    } else {
+        const cdnOrigin = ESM_PROVIDERS[cdn];
+        if (!cdnOrigin) throw new Error(`cdn provider '${cdn}' is not in built-in cdn list"`);
+        url = cdnOrigin + "/" + packageName;
+    }
+
+    return await import(url, attributes);
 }
+
+const ESM_PROVIDERS = {
+    "esm.run": "https://esm.run", // by jsDelivr
+    "esm.sh": "https://esm.sh",
+    skypack: "https://cdn.skypack.dev",
+    jspm: "https://jspm.dev",
+};
