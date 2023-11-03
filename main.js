@@ -1,8 +1,8 @@
 export function require(packageName) {
     if (!packageName) return;
-    const [text, url] = fetchTextSync((packageName.startsWith("http") ? "" : "https://unpkg.com/") + packageName);
+    const [text, url] = fetchTextSync((isURL(packageName) ? "" : "https://unpkg.com/") + packageName);
     if (!text) {
-        console.error("加载失败");
+        console.error(`加载失败 ${url}`);
         return;
     }
     let fixedText = text;
@@ -16,6 +16,16 @@ export function require(packageName) {
         }
     }
     return execCommonJS(fixedText);
+}
+
+function isURL(url) {
+    if (!url.startsWith("http://") && !url.startsWith("https://")) return false;
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 function execCommonJS(sourceCode) {
@@ -39,7 +49,7 @@ function fetchTextSync(url) {
     request.open("GET", url, false);
     request.send(null);
     if (request.status === 200) {
-        console.info(`加载了脚本 ${request.responseURL}`);
+        console.info(`加载了 ${request.responseURL}`);
         return [request.responseText, request.responseURL];
     }
     return [, request.responseURL];
@@ -59,21 +69,25 @@ export function pkg2head(packageName) {
     return appendScriptToHead("https://unpkg.com/" + packageName);
 }
 
-export async function import$(packageName, attributes = { cdn: "esm.sh" }) {
-    const cdn = attributes ? attributes.cdn : undefined;
-    let url;
+export function import$(packageName, attributes = { cdn: "esm.sh" }) {
+    if (packageName == undefined) throw new SyntaxError(`import$() requires a specifier`);
+    packageName = String(packageName);
+    if (typeof attributes !== "object") throw new TypeError(`The second argument to import$() must be an object`);
+    const cdn = attributes.cdn;
 
+    let url
     if (/^https?:\/\//.test(packageName)) {
         url = packageName;
     } else if (cdn && cdn.endsWith("/")) {
         url = attributes.cdn + packageName;
     } else {
         const cdnOrigin = ESM_PROVIDERS[cdn];
-        if (!cdnOrigin) throw new Error(`cdn provider '${cdn}' is not in built-in cdn list"`);
+        if (!cdnOrigin)
+            throw new Error(`CDN provider '${cdn}' is not in built-in CDN list, try: ${Object.keys(ESM_PROVIDERS)}"`);
         url = cdnOrigin + "/" + packageName;
     }
 
-    return await import(url, attributes);
+    return import(url, attributes);
 }
 
 const ESM_PROVIDERS = {

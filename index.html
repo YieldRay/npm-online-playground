@@ -6,10 +6,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Playground</title>
         <link rel="stylesheet" href="https://npm.elemecdn.com/landsoul@latest" />
-        <script type="module">
-            import { require, pkg2head, import$ } from "./main.js";
-            Object.assign(window, { require, import$, pkg2head });
-        </script>
         <style>
             html {
                 font-size: 16px;
@@ -30,7 +26,7 @@
         <p>require 函数仅能导入完全兼容 RequireJS 的包</p>
         <p>例如，React 默认以 CommonJS 形式导出，直接 const react = require("react") 即可（默认使用 unpkg）</p>
         <p>或者也可以从 url 加载 const react = require("https://unpkg.com/react@18/umd/react.production.min.js")</p>
-        <p>Vue3 默认导出 iife 格式，使用 await pkg2head("vue") 之后就可以使用 Vue 对象了</p>
+        <p>Vue3 默认导出 iife 格式，使用 await pkg2head("vue@3") 之后就可以使用 Vue 对象了</p>
         <p>Vue2 默认导出 cjs 格式： const Vue = require("vue@2")</p>
         <hr />
         <p>require 函数不能导入使用了 import/export 代码的包</p>
@@ -46,9 +42,20 @@
             <a href="https://www.npmjs.com/package/eruda">eruda</a>
         </p>
         <p>直接在本页面加上请求参数 eruda 或 vconsole 即可自动启用</p>
-        <p>例如：http://example.net/index.html?eruda</p>
+        <p>
+            例如：
+            <script>
+                const u = new URL(location.href);
+                u.search = "";
+                const href = u + "?eruda";
+                document.write(`<a href="${href}">${href}</a>`);
+            </script>
+        </p>
     </body>
-    <script>
+    <script type="module">
+        import { require, pkg2head, import$ } from "./main.js";
+        Object.assign(window, { require, import$, pkg2head });
+
         (async () => {
             if (new URL(location.href).searchParams.has("eruda")) {
                 await pkg2head("eruda");
