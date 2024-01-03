@@ -1,6 +1,11 @@
+function pkg2url(packageName) {
+    if (URL.canParse(packageName)) return packageName;
+    return "https://unpkg.com/" + packageName;
+}
+
 export function require(packageName) {
     if (!packageName) return;
-    const [text, url] = fetchTextSync((isURL(packageName) ? "" : "https://unpkg.com/") + packageName);
+    const [text, url] = fetchTextSync(pkg2url(packageName));
     if (!text) {
         console.error(`加载失败 ${url}`);
         return;
@@ -18,16 +23,6 @@ export function require(packageName) {
     return execCommonJS(fixedText);
 }
 
-function isURL(url) {
-    if (!url.startsWith("http://") && !url.startsWith("https://")) return false;
-    try {
-        new URL(url);
-        return true;
-    } catch {
-        return false;
-    }
-}
-
 function execCommonJS(sourceCode) {
     const module = {
         id: "<repl>",
@@ -38,9 +33,8 @@ function execCommonJS(sourceCode) {
         children: [],
         paths: [],
     };
-    let exports = module.exports;
-    const process = { env: {} };
-    eval(sourceCode);
+    globalThis.process ||= { env: {} };
+    Function("module", "exports", sourceCode)(module, module.exports);
     return module.exports;
 }
 
@@ -56,17 +50,17 @@ function fetchTextSync(url) {
 }
 
 function appendScriptToHead(src) {
-    return new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = src;
-        script.onload = (e) => resolve(e);
-        script.onerror = (e) => reject(e);
-        document.head.appendChild(script);
-    });
+    const { promise, resolve, reject } = Promise.withResolvers();
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.append(script);
+    return promise;
 }
 
 export function pkg2head(packageName) {
-    return appendScriptToHead("https://unpkg.com/" + packageName);
+    return appendScriptToHead(pkg2url(packageName));
 }
 
 export function import$(packageName, attributes = { cdn: "esm.sh" }) {
@@ -75,7 +69,7 @@ export function import$(packageName, attributes = { cdn: "esm.sh" }) {
     if (typeof attributes !== "object") throw new TypeError(`The second argument to import$() must be an object`);
     const cdn = attributes.cdn;
 
-    let url
+    let url;
     if (/^https?:\/\//.test(packageName)) {
         url = packageName;
     } else if (cdn && cdn.endsWith("/")) {
