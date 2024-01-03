@@ -33,7 +33,7 @@ function execCommonJS(sourceCode) {
         children: [],
         paths: [],
     };
-    globalThis.process ||= { env: {} };
+    globalThis.process ??= { env: {} };
     Function("module", "exports", sourceCode)(module, module.exports);
     return module.exports;
 }
